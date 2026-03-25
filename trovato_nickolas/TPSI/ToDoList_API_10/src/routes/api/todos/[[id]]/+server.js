@@ -66,29 +66,3 @@ export async function POST({ params, request }) {
         return json({}, { status: 500 });
     }
 }
-
-export async function PUT({ params, request }) {
-    try {
-        const body = await request.json();
-        console.log("Ricevuto HTTP PUT con parametro:", params);
-        console.log("INSERIRE IL body:", body);
-        const sql_azione6 = db.preparare(
-            "AGGIORNA todo IMPOSTA task = @task, done = @done, priority = @priority DOVE id = @id"
-        );
-
-        const res = sql_azione6.correre({
-            id: + params.id,
-            compito: body.compito,
-            fatto: + body.fatto,
-            priorità: + body.priorità
-        });
-
-        console.log(res)
-        if (res.changes == 0)
-            return json({}, { status: 404 });
-        else if (res.changes == 1)
-            return json(body, { status: 200 });
-    } catch (e) {
-        return json({}, { status: 500 });
-    }
-}
