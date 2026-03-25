@@ -90,3 +90,66 @@ export async function PUT({ params, request }) {
         return json({}, { status: 500 });
     }
 }
+
+export async function PATCH({params, request}) {
+    try {
+        const body = await request.json();
+        console.log("Ricevuto HTTP PATCH con paramentro:", params);
+        console.log("PUT BODY:", body);
+
+        const sql_azione7 = db.prepare("UPDATE todo SET task = @task WHERE id = @id");
+        const sql_azione8 = db.prepare("UPDATE todo SET priority = @priority WHERE id = @id");
+        const sql_azione9 = db.prepare("UPDATE todo SET done = @done WHERE id = @id");
+        const sql_azione_todo = db.prepare("SELECT * FROM todo WHERE id = ?");
+
+        let key = Object.keys(body)[0];
+        let res;
+        switch (key) {
+            case 'task':
+                res = sql_azione7.run({
+                    id: +params.id,
+                    task: body.task
+                });
+                break;
+            case 'priority':
+                res = sql_azione8.run({
+                    id: +params.id,
+                    priority: +body.priority
+                });
+                break;
+            case 'done':
+                res = sql_azione9.run({
+                    id: +params.id,
+                    done: body.done
+                });
+                break;
+            default:
+                return json({}, {status: 500})
+        }
+        if (res.changes == 0)
+            return json({}, {status: 404});
+        else if (res.changes == 1) {
+            const todo = sql_azione_todo.all(+params.id);
+            return json(todo, {status: 200});
+        }
+    } catch(e){
+        console.log(e)
+        return json({}, {status: 500});
+    }
+}
+
+export async function DELETE({params, request}) {
+    try {
+        console.log("Ricevuto HTTP DELETE con paramentro: ", params);
+        const sql_azione10 = db.prepare("DELETE FROM todo WHERE id = @id");
+        const res = sql_azione10.run({ id: +params.id});
+
+        if (res.changes == 0) {
+            return json({}, { status: 404});
+        } else if (res.changes == 1) {
+            return new Response(null, { status: 204});
+        }         
+    } catch (e) {
+        return json({}, {status: 500});
+    }
+}
